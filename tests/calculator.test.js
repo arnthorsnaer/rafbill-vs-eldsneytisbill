@@ -1,14 +1,34 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { annualCost, comparison, krPer100Km } from "../src/calculator.js";
+import { comparison, distanceForBudget, energyCost, krPer100Km, krPerKm, operatingScenario } from "../src/calculator.js";
 
-test("cost per 100 km", () => assert.equal(krPer100Km({ unitPriceKr: 25.76, consumptionPer100Km: 16 }), 412.16));
-test("annual cost", () => assert.equal(annualCost({ krPer100Km: 412, annualKm: 20000 }), 82400));
-test("migrated defaults preserve the prototype energy comparison", () => {
-  const result = comparison({ homeChargingKrPerKwh: 25.76, fastChargingKrPerKwh: 65, evKwhPer100Km: 16, fuelKrPerLitre: 240, fuelLitresPer100Km: 7.4, annualKm: 20000 });
-  assert.equal(result.homeKrPer100Km, 412.16);
-  assert.equal(result.fastKrPer100Km, 1040);
-  assert.equal(result.fuelKrPer100Km, 1776);
-  assert.equal(result.homeAnnualKr, 82432);
+test("calculates energy cost per 100 km and per km", () => {
+  const cost = krPer100Km({ unitPriceKr: 25.76, consumptionPer100Km: 16 });
+  assert.equal(cost, 412.16);
+  assert.equal(krPerKm({ krPer100Km: cost }), 4.1216);
 });
-test("rejects invalid inputs", () => assert.throws(() => krPer100Km({ unitPriceKr: -1, consumptionPer100Km: 16 })));
+
+test("calculates distance for a budget", () => {
+  assert.equal(distanceForBudget({ budgetKr: 1000, krPer100Km: 412.16 }), 242.62422360248448);
+  assert.equal(distanceForBudget({ budgetKr: 0, krPer100Km: 0 }), 0);
+});
+
+test("keeps energy, scheduled maintenance and risk reserve separate", () => {
+  assert.deepEqual(
+    operatingScenario({ km: 100000, krPer100Km: 412.16, scheduledMaintenanceKr: 150000, failureReserveKr: 0 }),
+    { energyKr: 412160, scheduledMaintenanceKr: 150000, failureReserveKr: 0, totalKr: 562160 }
+  );
+  assert.equal(energyCost({ krPer100Km: 1776, km: 100000 }), 1776000);
+});
+
+test("derives all three migrated energy scenarios", () => {
+  assert.deepEqual(
+    comparison({ homeChargingKrPerKwh: 25.76, fastChargingKrPerKwh: 65, evKwhPer100Km: 16, fuelKrPerLitre: 240, fuelLitresPer100Km: 7.4 }),
+    { homeKrPer100Km: 412.16, fastKrPer100Km: 1040, fuelKrPer100Km: 1776 }
+  );
+});
+
+test("rejects invalid scenario inputs", () => {
+  assert.throws(() => krPer100Km({ unitPriceKr: -1, consumptionPer100Km: 16 }));
+  assert.throws(() => operatingScenario({ km: 1, krPer100Km: 1, failureReserveKr: -1 }));
+});

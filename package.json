@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "npm run test"
+    "smoke": "node scripts/static-smoke.mjs",
+    "check": "npm run test && npm run smoke"
   }
 }
