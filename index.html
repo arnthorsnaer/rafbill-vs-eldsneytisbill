@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kostnaður á kílómetra — Rafbíll vs Bensínbíll</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2330;
+    --ev-home: #00d4ff;
+    --ev-fast: #7c3aed;
+    --ice: #f59e0b;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --border: #30363d;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ─────────────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 24px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 50%, rgba(0,212,255,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 50%, rgba(245,158,11,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Aurora shimmer overlay */
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40%;
+    background: linear-gradient(180deg,
+      rgba(34,197,94,0.04) 0%,
+      rgba(0,212,255,0.03) 40%,
+      transparent 100%);
+    pointer-events: none;
+    animation: aurora 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes aurora {
+    0%   { opacity: 0.4; transform: scaleX(1); }
+    100% { opacity: 1;   transform: scaleX(1.05); }
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .hero-title {
+    font-size: clamp(36px, 7vw, 80px);
+    font-weight: 700;
+    line-height: 1.05;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+    position: relative;
+  }
+
+  .hero-title .ev  { color: var(--ev-home); }
+  .hero-title .ice { color: var(--ice); }
+
+  .hero-sub {
+    font-size: clamp(14px, 2vw, 18px);
+    color: var(--muted);
+    max-width: 560px;
+    margin: 0 auto 64px;
+    position: relative;
+  }
+
+  /* Iceland renewable badge */
+  .renewable-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.25);
+    color: #4ade80;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 5px 12px;
+    border-radius: 99px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  /* ── THREE COST CARDS ─────────────────────────────────── */
+  .cost-trio {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 860px;
+    position: relative;
+  }
+
+  .cost-card {
+    flex: 1 1 220px;
+    max-width: 260px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+
+  .cost-card:hover { transform: translateY(-4px); }
+
+  .cost-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .cost-card.ev-home::before { background: var(--ev-home); }
+  .cost-card.ev-fast::before { background: var(--ev-fast); }
+  .cost-card.ice::before     { background: var(--ice); }
+
+  .cost-card .icon   { font-size: 28px; margin-bottom: 12px; display: block; }
+  .cost-card .label  { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .cost-card .vehicle { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+  .cost-card .price {
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .cost-card.ev-home .price { color: var(--ev-home); }
+  .cost-card.ev-fast .price { color: #a78bfa; }
+  .cost-card.ice .price     { color: var(--ice); }
+
+  .cost-card .isk-suffix { font-size: 18px; font-weight: 500; vertical-align: super; }
+  .cost-card .per { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+  .cost-card .badge {
+    margin-top: 16px;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 99px;
+  }
+  .ev-home .badge { background: rgba(0,212,255,0.12); color: var(--ev-home); }
+  .ev-fast .badge { background: rgba(124,58,237,0.15); color: #a78bfa; }
+  .ice .badge     { background: rgba(245,158,11,0.12); color: var(--ice); }
+
+  .scroll-hint {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 12px;
+    animation: bounce 2s infinite;
+    position: relative;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(6px); }
+  }
+
+  /* ── SECTION SHARED ───────────────────────────────────── */
+  section {
+    padding: 100px 24px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .section-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    line-height: 1.15;
+  }
+
+  .section-desc {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 580px;
+    margin-bottom: 56px;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* ── ENERGY BARS ──────────────────────────────────────── */
+  .energy-grid { display: flex; flex-direction: column; gap: 28px; }
+
+  .energy-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 100px;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .energy-label { display: flex; align-items: center; gap: 10px; }
+
+  .energy-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+
+  .energy-name { font-size: 14px; font-weight: 500; }
+  .energy-sub  { font-size: 11px; color: var(--muted); }
+
+  .bar-track {
+    height: 28px;
+    background: var(--bg3);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex; align-items: center; padding-left: 10px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+  }
+
+  .bar-fill.ev-home { background: linear-gradient(90deg, rgba(0,212,255,0.8), rgba(0,212,255,0.4)); color: #0d1117; }
+  .bar-fill.ev-fast { background: linear-gradient(90deg, rgba(124,58,237,0.8), rgba(124,58,237,0.4)); color: #fff; }
+  .bar-fill.ice-bar  { background: linear-gradient(90deg, rgba(245,158,11,0.8), rgba(245,158,11,0.4)); color: #0d1117; }
+
+  .bar-value { font-size: 20px; font-weight: 700; text-align: right; }
+  .bar-value.ev-home { color: var(--ev-home); }
+  .bar-value.ev-fast { color: #a78bfa; }
+  .bar-value.ice-bar  { color: var(--ice); }
+
+  /* ── JOURNEY ──────────────────────────────────────────── */
+  .journey-section { background: var(--bg2); border-radius: 24px; padding: 48px 40px; }
+
+  .journey-rows { display: flex; flex-direction: column; gap: 16px; }
+
+  .journey-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .j-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+
+  .j-label { font-size: 13px; color: var(--muted); width: 180px; flex-shrink: 0; }
+
+  .j-track {
+    flex: 1; height: 20px;
+    background: var(--bg3);
+    border-radius: 4px; overflow: hidden;
+  }
+
+  .j-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .j-fill.ev-home  { background: var(--ev-home); }
+  .j-fill.ev-fast  { background: #7c3aed; }
+  .j-fill.ice-fill { background: var(--ice); }
+
+  .j-km { font-size: 15px; font-weight: 700; width: 72px; text-align: right; flex-shrink: 0; }
+  .j-km.ev-home  { color: var(--ev-home); }
+  .j-km.ev-fast  { color: #a78bfa; }
+  .j-km.ice-fill { color: var(--ice); }
+
+  /* ── ANNUAL CARDS ─────────────────────────────────────── */
+  .annual-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .annual-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 24px;
+  }
+
+  .annual-card .a-label   { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .annual-card .a-vehicle { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .annual-card .a-total   { font-size: 36px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; margin-bottom: 4px; }
+  .annual-card .a-per     { font-size: 12px; color: var(--muted); }
+
+  .annual-card.ev-home .a-total { color: var(--ev-home); }
+  .annual-card.ev-fast .a-total { color: #a78bfa; }
+  .annual-card.ice-a   .a-total { color: var(--ice); }
+
+  .savings-callout {
+    background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(0,212,255,0.03));
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 16px; padding: 28px 32px;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+
+  .savings-callout .s-amount { font-size: 52px; font-weight: 700; color: var(--ev-home); letter-spacing: -0.03em; line-height: 1; flex-shrink: 0; }
+  .savings-callout .s-text   { font-size: 16px; color: var(--muted); max-width: 440px; }
+  .savings-callout .s-text strong { color: var(--text); }
+
+  /* ── HEIGHT BARS ──────────────────────────────────────── */
+  .lf-bar-group { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+  .lf-bar {
+    width: 80px; border-radius: 8px 8px 0 0;
+    transition: height 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex; align-items: flex-start; justify-content: center; padding-top: 10px;
+  }
+
+  .lf-bar .lf-val { font-size: 13px; font-weight: 700; color: #0d1117; text-align: center; line-height: 1.2; }
+  .lf-label { font-size: 12px; color: var(--muted); text-align: center; max-width: 90px; }
+  .lf-cost  { font-size: 18px; font-weight: 700; }
+
+  /* ── MAINTENANCE ──────────────────────────────────────── */
+  .maintenance-split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .maint-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; }
+
+  .maint-card .m-header  { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+  .maint-card .m-icon    { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .maint-card .m-title   { font-size: 16px; font-weight: 600; }
+  .maint-card .m-sub     { font-size: 12px; color: var(--muted); }
+
+  .maint-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; font-size: 14px; }
+  .maint-item .dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+
+  .maint-total { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+  .maint-total strong { font-size: 24px; font-weight: 700; display: block; margin-top: 4px; }
+
+  .maint-card.ev .maint-total strong  { color: var(--ev-home); }
+  .maint-card.ice .maint-total strong { color: var(--ice); }
+
+  /* ── PROMPT BOX ───────────────────────────────────────── */
+  .prompt-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 36px 40px; position: relative; }
+
+  .prompt-box .p-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(124,58,237,0.15); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 12px; border-radius: 99px; margin-bottom: 20px; }
+  .prompt-box .p-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .prompt-box .p-desc  { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+  .prompt-text { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; font-family: 'Space Grotesk', monospace; font-size: 14px; line-height: 1.7; color: #cdd9e5; user-select: all; cursor: text; margin-bottom: 20px; }
+
+  .copy-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--bg3); border: 1px solid var(--border); color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+  .copy-btn:hover { background: var(--border); border-color: var(--muted); }
+  .copy-btn.copied { background: rgba(0,212,255,0.1); border-color: var(--ev-home); color: var(--ev-home); }
+
+  footer { padding: 40px 24px; text-align: center; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); max-width: 960px; margin: 0 auto; line-height: 1.8; }
+
+  .counter { display: inline-block; }
+
+  /* ── FADE IN ──────────────────────────────────────────── */
+  .fade-in { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── RESPONSIVE ───────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .energy-row { grid-template-columns: 1fr 72px; }
+    .energy-label { display: none; }
+    .maintenance-split { grid-template-columns: 1fr; }
+    .journey-section { padding: 28px 20px; }
+    .prompt-box { padding: 24px 20px; }
+    .savings-callout { flex-direction: column; gap: 12px; }
+    .j-label { width: 130px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ──────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="renewable-badge">
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M5 2v3l2 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    99,98% endurnýjanleg orka — jarðhiti &amp; vatnsafl
+  </div>
+
+  <p class="hero-eyebrow">Gagnagreining · 2026 · Ísland</p>
+  <h1 class="hero-title">
+    <span class="ev">Rafbíll</span> eða <span class="ice">Bensínbíll</span><br>
+    Kostnaður á kílómetra
+  </h1>
+  <p class="hero-sub">Tesla Model Y Long Range borið saman við Nissan X-Trail — sami flokkur, sömu vegir, mjög ólíkar tölur.</p>
+
+  <div class="cost-trio">
+    <div class="cost-card ev-home fade-in">
+      <span class="icon">⚡</span>
+      <div class="label">Rafbíll · Heimahleðsla</div>
+      <div class="vehicle">Tesla Model Y LR</div>
+      <div class="price"><span class="counter" data-target="412" data-decimals="0">0</span> <span class="isk-suffix">kr.</span></div>
+      <div class="per">á 100 km</div>
+      <span class="badge">4,3× ódýrari</span>
+    </div>
+    <div class="cost-card ev-fast fade-in" style="transition-delay:0.1s">
+      <span class="icon">🔌</span>
+      <div class="label">Rafbíll · Hraðhleðsla</div>
+      <div class="vehicle">Tesla Model Y LR</div>
+      <div class="price"><span class="counter" data-target="1040" data-decimals="0">0</span> <span class="isk-suffix">kr.</span></div>
+      <div class="per">á 100 km</div>
+      <span class="badge">41% ódýrari</span>
+    </div>
+    <div class="cost-card ice fade-in" style="transition-delay:0.2s">
+      <span class="icon">⛽</span>
+      <div class="label">Bensínbíll · Dæla</div>
+      <div class="vehicle">Nissan X-Trail</div>
+      <div class="price"><span class="counter" data-target="1776" data-decimals="0">0</span> <span class="isk-suffix">kr.</span></div>
+      <div class="per">á 100 km</div>
+      <span class="badge">Grunnlína</span>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Skrunaðu til að sjá meira</span>
+    <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M8 3v10M3 9l5 5 5-5" stroke="#8b949e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ── SECTION 1: ENERGY COST ─────────────────────────────── -->
+<section>
+  <p class="section-eyebrow fade-in">Hluti 01 — Kostnaður á 100 km</p>
+  <h2 class="section-title fade-in">Hvað kostar að keyra?</h2>
+  <p class="section-desc fade-in">Orkukostnaður er ráðandi þáttur í samanlögðum rekstrarkostnaði. Munurinn á heimahleðslu og bensíni er kerfisbundinn — Ísland flytur inn allt eldsneyti en framleiðir rafmagn sjálft.</p>
+
+  <div class="energy-grid fade-in">
+    <div class="energy-row">
+      <div class="energy-label">
+        <div class="energy-icon" style="background:rgba(0,212,255,0.1);">⚡</div>
+        <div>
+          <div class="energy-name" style="color:var(--ev-home);">Rafbíll — Heima</div>
+          <div class="energy-sub">25,76 kr./kWh · 16 kWh/100 km</div>
+        </div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill ev-home" style="width:0%" data-width="23%">412 kr.</div>
+      </div>
+      <div class="bar-value ev-home">412 kr.</div>
+    </div>
+
+    <div class="energy-row">
+      <div class="energy-label">
+        <div class="energy-icon" style="background:rgba(124,58,237,0.1);">🔌</div>
+        <div>
+          <div class="energy-name" style="color:#a78bfa;">Rafbíll — Hraðhleðsla</div>
+          <div class="energy-sub">65 kr./kWh · 16 kWh/100 km</div>
+        </div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill ev-fast" style="width:0%" data-width="59%">1.040 kr.</div>
+      </div>
+      <div class="bar-value ev-fast">1.040 kr.</div>
+    </div>
+
+    <div class="energy-row">
+      <div class="energy-label">
+        <div class="energy-icon" style="background:rgba(245,158,11,0.1);">⛽</div>
+        <div>
+          <div class="energy-name" style="color:var(--ice);">Bensínbíll — Dæla</div>
+          <div class="energy-sub">240 kr./lítri · 7,4 L/100 km</div>
+        </div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill ice-bar" style="width:0%" data-width="100%">1.776 kr.</div>
+      </div>
+      <div class="bar-value ice-bar">1.776 kr.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:48px; display:flex; gap:12px; flex-wrap:wrap;">
+    <div style="background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:16px 20px; flex:1; min-width:180px;">
+      <div style="font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Heima vs bensín</div>
+      <div style="font-size:28px; font-weight:700; color:var(--ev-home);">4,31×</div>
+      <div style="font-size:13px; color:var(--muted);">bensín kostar 4× meira á km</div>
+    </div>
+    <div style="background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:16px 20px; flex:1; min-width:180px;">
+      <div style="font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Hraðhleðsla vs bensín</div>
+      <div style="font-size:28px; font-weight:700; color:#a78bfa;">1,71×</div>
+      <div style="font-size:13px; color:var(--muted);">enn 41% dýrara að tanka</div>
+    </div>
+    <div style="background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:16px 20px; flex:1; min-width:180px;">
+      <div style="font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">Heima vs hraðhleðsla</div>
+      <div style="font-size:28px; font-weight:700; color:var(--text);">2,53×</div>
+      <div style="font-size:13px; color:var(--muted);">heimahleðslan greiðir sig</div>
+    </div>
+  </div>
+
+  <!-- Iceland renewable callout -->
+  <div style="margin-top:24px; background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.2); border-radius:12px; padding:16px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+    <div style="font-size:32px;">🌋</div>
+    <div style="font-size:14px; color:var(--muted);">
+      <strong style="color:#4ade80;">Ísland framleiðir 99,98% af rafmagni sínu</strong> úr jarðvarma og vatnsafli. Hvert kílómetri keyrt á rafmagni er nánast kolefnishlutlægt — án þess að borga fyrir innflutt eldsneyti.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── IMAGE 1 ───────────────────────────────────────────── -->
+<div style="padding:0 0 64px;">
+  <div class="fade-in">
+    <img src="hero.jpg" alt="Tesla Model Y á hringveginum á móti bensínbíl við dælur" style="width:100%; display:block;">
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ── SECTION 2: 1000 KR JOURNEY ───────────────────────── -->
+<section>
+  <p class="section-eyebrow fade-in">Hluti 02 — Spurning um 1.000 kr.</p>
+  <h2 class="section-title fade-in">Hversu langt kemstu á 1.000 kr.?</h2>
+  <p class="section-desc fade-in">Eitt þúsund krónur — um 8 dollara — segja sögu um orkunýtni sem engin tækniþrjóska getur gert eins skýra.</p>
+
+  <div class="journey-section fade-in">
+    <div class="journey-rows">
+      <div class="journey-row">
+        <div class="j-icon" style="background:rgba(0,212,255,0.1); color:var(--ev-home);">⚡</div>
+        <div class="j-label" style="color:var(--ev-home); font-weight:500;">Rafbíll — Heima</div>
+        <div class="j-track">
+          <div class="j-fill ev-home" style="width:0%" data-width="100%"></div>
+        </div>
+        <div class="j-km ev-home"><span class="counter" data-target="243" data-decimals="0">0</span> km</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-icon" style="background:rgba(124,58,237,0.1); color:#a78bfa;">🔌</div>
+        <div class="j-label" style="color:#a78bfa; font-weight:500;">Rafbíll — Hraðhleðsla</div>
+        <div class="j-track">
+          <div class="j-fill ev-fast" style="width:0%" data-width="40%"></div>
+        </div>
+        <div class="j-km ev-fast"><span class="counter" data-target="96" data-decimals="0">0</span> km</div>
+      </div>
+      <div class="journey-row">
+        <div class="j-icon" style="background:rgba(245,158,11,0.1); color:var(--ice);">⛽</div>
+        <div class="j-label" style="color:var(--ice); font-weight:500;">X-Trail — Bensín</div>
+        <div class="j-track">
+          <div class="j-fill ice-fill" style="width:0%" data-width="23%"></div>
+        </div>
+        <div class="j-km ice-fill"><span class="counter" data-target="56" data-decimals="0">0</span> km</div>
+      </div>
+    </div>
+
+    <div style="margin-top:32px; display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:12px;">
+      <div style="background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:10px; padding:14px 16px;">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Heimahleðsla: 243 km ≈</div>
+        <div style="font-size:14px; font-weight:600;">Reykjavík → Akureyri</div>
+        <div style="font-size:11px; color:var(--muted);">um Kjölurveg</div>
+      </div>
+      <div style="background:rgba(124,58,237,0.05); border:1px solid rgba(124,58,237,0.2); border-radius:10px; padding:14px 16px;">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Hraðhleðsla: 96 km ≈</div>
+        <div style="font-size:14px; font-weight:600;">Reykjavík → Hvolsvöllur</div>
+        <div style="font-size:11px; color:var(--muted);">Suðurlandsvegur</div>
+      </div>
+      <div style="background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.15); border-radius:10px; padding:14px 16px;">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Bensín: 56 km ≈</div>
+        <div style="font-size:14px; font-weight:600;">Reykjavík → Selfoss</div>
+        <div style="font-size:11px; color:var(--muted);">Þjóðvegur 1</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── SECTION 3: ANNUAL ──────────────────────────────────── -->
+<section>
+  <p class="section-eyebrow fade-in">Hluti 03 — Árleg spá</p>
+  <h2 class="section-title fade-in">20.000 km á ári</h2>
+  <p class="section-desc fade-in">Meðalakstur bíla á Íslandi. Munurinn á heimahleðslu og bensíni safnast saman í verulegan sparnað.</p>
+
+  <div class="annual-grid fade-in">
+    <div class="annual-card ev-home">
+      <div class="a-label">Rafbíll — Heimahleðsla</div>
+      <div class="a-vehicle">Tesla Model Y</div>
+      <div class="a-total"><span class="counter" data-target="82400" data-decimals="0">0</span> kr.</div>
+      <div class="a-per">á ári · orka eingöngu</div>
+    </div>
+    <div class="annual-card ev-fast">
+      <div class="a-label">Rafbíll — Hraðhleðsla</div>
+      <div class="a-vehicle">Tesla Model Y</div>
+      <div class="a-total"><span class="counter" data-target="208000" data-decimals="0">0</span> kr.</div>
+      <div class="a-per">á ári · orka eingöngu</div>
+    </div>
+    <div class="annual-card ice-a">
+      <div class="a-label">Bensínbíll — Dæla</div>
+      <div class="a-vehicle">Nissan X-Trail</div>
+      <div class="a-total"><span class="counter" data-target="355200" data-decimals="0">0</span> kr.</div>
+      <div class="a-per">á ári · eldsneyti eingöngu</div>
+    </div>
+  </div>
+
+  <div class="savings-callout fade-in">
+    <div class="s-amount">272.800 kr.</div>
+    <div class="s-text">
+      <strong>Árlegur orkusparnaður</strong> á móti bensínbíl við heimahleðslu — nóg til að greiða tæplega þrjár mánaðarlegar afborganir af nýjum bíl, eða sem nemur um helmingi ferðakostnaðar til Evrópu og til baka.
+    </div>
+  </div>
+
+  <!-- 5-year bar chart -->
+  <div style="margin-top:32px; background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:28px 28px;" class="fade-in">
+    <div style="font-size:12px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:20px;">Orkukostnaður — 5 ár / 100.000 km</div>
+    <div style="display:flex; gap:24px; align-items:flex-end; flex-wrap:wrap;">
+      <div class="lf-bar-group fade-in">
+        <div class="lf-bar" style="background:linear-gradient(180deg,rgba(0,212,255,0.6),rgba(0,212,255,0.3)); height:0px;" data-height="77px">
+          <span class="lf-val">412<br>þ.kr.</span>
+        </div>
+        <div class="lf-label">Heima</div>
+        <div class="lf-cost" style="color:var(--ev-home);">412.000 kr.</div>
+      </div>
+      <div class="lf-bar-group fade-in" style="transition-delay:0.1s">
+        <div class="lf-bar" style="background:linear-gradient(180deg,rgba(124,58,237,0.6),rgba(124,58,237,0.3)); height:0px;" data-height="194px">
+          <span class="lf-val">1,04<br>m.kr.</span>
+        </div>
+        <div class="lf-label">Hraðhleðsla</div>
+        <div class="lf-cost" style="color:#a78bfa;">1.040.000 kr.</div>
+      </div>
+      <div class="lf-bar-group fade-in" style="transition-delay:0.2s">
+        <div class="lf-bar" style="background:linear-gradient(180deg,rgba(245,158,11,0.6),rgba(245,158,11,0.3)); height:0px;" data-height="332px">
+          <span class="lf-val">1,78<br>m.kr.</span>
+        </div>
+        <div class="lf-label">Bensín X-Trail</div>
+        <div class="lf-cost" style="color:var(--ice);">1.776.000 kr.</div>
+      </div>
+      <div style="flex:1; min-width:200px; background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15); border-radius:12px; padding:16px 18px; margin-bottom:28px;">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">5 ára sparnaður — heima vs bensín</div>
+        <div style="font-size:30px; font-weight:700; color:var(--ev-home);">1.364.000 kr.</div>
+        <div style="font-size:13px; color:var(--muted); margin-top:4px;">Nóg til að kaupa nýjan bíl.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Iceland EV stat -->
+  <div style="margin-top:24px; background:rgba(34,197,94,0.04); border:1px solid rgba(34,197,94,0.15); border-radius:12px; padding:20px 24px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;" class="fade-in">
+    <div style="font-size:36px; font-weight:700; color:#4ade80;">41%</div>
+    <div style="font-size:14px; color:var(--muted); flex:1;">
+      allra nýskráðra bíla á Íslandi árið 2025 voru rafbílar. <strong style="color:var(--text);">Tesla Model Y var selt mest af öllum bílum á Íslandi</strong> — meira en tvöfalt fleiri einingar en næst-selt líkan.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── IMAGE 2 ───────────────────────────────────────────── -->
+<div style="padding:0 0 64px;">
+  <div class="fade-in">
+    <img src="hero2.png" alt="Abstrakt gagnaklist — rafbíll vs bensínbíll" style="width:100%; display:block;">
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ── SECTION 4: MAINTENANCE ────────────────────────────── -->
+<section>
+  <p class="section-eyebrow fade-in">Hluti 04 — Hvað þarf viðhald?</p>
+  <h2 class="section-title fade-in">Færri hlutar — lægir reikningar</h2>
+  <p class="section-desc fade-in">Rafmótor hefur færri en 20 hreyfanlega hluta. Bensínvél hefur yfir 2.000. Þetta skiptir máli þegar kemur að viðhaldsreikningunum.</p>
+
+  <div class="maintenance-split fade-in">
+    <div class="maint-card ev">
+      <div class="m-header">
+        <div class="m-icon" style="background:rgba(0,212,255,0.1);">⚡</div>
+        <div>
+          <div class="m-title">Tesla Model Y</div>
+          <div class="m-sub">Rafknúinn drifás</div>
+        </div>
+      </div>
+      <div class="maint-item"><span class="dot" style="background:var(--ev-home)"></span>Dekk — snúningur á 10.000 km fresti</div>
+      <div class="maint-item"><span class="dot" style="background:var(--ev-home)"></span>Bremsuvökvi — á 2 ára fresti</div>
+      <div class="maint-item"><span class="dot" style="background:var(--ev-home)"></span>Loftsíar í farþegarými — árlega</div>
+      <div class="maint-item"><span class="dot" style="background:var(--ev-home)"></span>Engar olíuskipti — nokkurn tíma</div>
+      <div class="maint-item"><span class="dot" style="background:var(--ev-home)"></span>Afturheimtarbremsur — bremsur endast 2–3× lengur</div>
+      <div class="maint-total">
+        Árlegur meðalviðhaldskostnaður
+        <strong>~80.000 kr./ári</strong>
+      </div>
+    </div>
+
+    <div class="maint-card ice">
+      <div class="m-header">
+        <div class="m-icon" style="background:rgba(245,158,11,0.1);">⛽</div>
+        <div>
+          <div class="m-title">Nissan X-Trail</div>
+          <div class="m-sub">Bensíndrifinn</div>
+        </div>
+      </div>
+      <div class="maint-item"><span class="dot" style="background:var(--ice)"></span>Olía + síur — á 8.000–10.000 km fresti</div>
+      <div class="maint-item"><span class="dot" style="background:var(--ice)"></span>Loftsía — árlega</div>
+      <div class="maint-item"><span class="dot" style="background:var(--ice)"></span>Kveikjarar — á 60.000–100.000 km fresti</div>
+      <div class="maint-item"><span class="dot" style="background:var(--ice)"></span>Gírkassaolíuskoðun</div>
+      <div class="maint-item"><span class="dot" style="background:var(--ice)"></span>Kælivökvaskipti — á 50.000 km fresti</div>
+      <div class="maint-total">
+        Árlegur meðalviðhaldskostnaður
+        <strong>~135.000 kr./ári</strong>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px; background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(0,212,255,0.02)); border:1px solid rgba(0,212,255,0.15); border-radius:12px; padding:20px 24px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;" class="fade-in">
+    <div style="font-size:36px; font-weight:700; color:var(--ev-home); flex-shrink:0;">40%</div>
+    <div style="font-size:14px; color:var(--muted);">lægri viðhaldskostnaður rafbíla á móti bensínbílum yfir líftíma bílsins. <span style="color:var(--text);">Auk orkusparnaðarins bætir þetta um 55.000 kr. á ári við kosti rafbílsins.</span></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── SECTION 5: TCO ─────────────────────────────────────── -->
+<section>
+  <p class="section-eyebrow fade-in">Hluti 05 — Neðsta línan</p>
+  <h2 class="section-title fade-in">Heildarkostnaður reksturs</h2>
+  <p class="section-desc fade-in">Orka + viðhald samanlögð. Á ári, 20.000 km.</p>
+
+  <div style="display:flex; flex-direction:column; gap:16px;" class="fade-in">
+    <!-- EV Home -->
+    <div style="display:flex; align-items:center; gap:16px; background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:20px 24px;">
+      <div style="font-size:22px; flex-shrink:0;">⚡</div>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:13px; font-weight:600; color:var(--ev-home); margin-bottom:6px;">Model Y — Heimahleðsla</div>
+        <div style="height:12px; background:var(--bg3); border-radius:4px; overflow:hidden; display:flex;">
+          <div style="height:100%; background:var(--ev-home); border-radius:4px 0 0 4px; width:0%; transition:width 1.4s ease;" class="tco-bar" data-width="51%"></div>
+          <div style="height:100%; background:rgba(0,212,255,0.3); width:0%; transition:width 1.4s ease 0.1s;" class="tco-bar" data-width="49%"></div>
+        </div>
+        <div style="display:flex; gap:16px; margin-top:6px; font-size:11px; color:var(--muted);">
+          <span style="color:var(--ev-home);">■ Orka 82.400 kr.</span>
+          <span style="color:rgba(0,212,255,0.6);">■ Viðhald 80.000 kr.</span>
+        </div>
+      </div>
+      <div style="font-size:22px; font-weight:700; color:var(--ev-home); flex-shrink:0; white-space:nowrap;">162.400 kr.</div>
+    </div>
+
+    <!-- EV Fast -->
+    <div style="display:flex; align-items:center; gap:16px; background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:20px 24px;">
+      <div style="font-size:22px; flex-shrink:0;">🔌</div>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:13px; font-weight:600; color:#a78bfa; margin-bottom:6px;">Model Y — Hraðhleðsla eingöngu</div>
+        <div style="height:12px; background:var(--bg3); border-radius:4px; overflow:hidden; display:flex;">
+          <div style="height:100%; background:#7c3aed; border-radius:4px 0 0 4px; width:0%; transition:width 1.4s ease;" class="tco-bar" data-width="72%"></div>
+          <div style="height:100%; background:rgba(124,58,237,0.3); width:0%; transition:width 1.4s ease 0.1s;" class="tco-bar" data-width="28%"></div>
+        </div>
+        <div style="display:flex; gap:16px; margin-top:6px; font-size:11px; color:var(--muted);">
+          <span style="color:#7c3aed;">■ Orka 208.000 kr.</span>
+          <span style="color:rgba(124,58,237,0.4);">■ Viðhald 80.000 kr.</span>
+        </div>
+      </div>
+      <div style="font-size:22px; font-weight:700; color:#a78bfa; flex-shrink:0; white-space:nowrap;">288.000 kr.</div>
+    </div>
+
+    <!-- ICE -->
+    <div style="display:flex; align-items:center; gap:16px; background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:20px 24px;">
+      <div style="font-size:22px; flex-shrink:0;">⛽</div>
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:13px; font-weight:600; color:var(--ice); margin-bottom:6px;">Nissan X-Trail — Bensín</div>
+        <div style="height:12px; background:var(--bg3); border-radius:4px; overflow:hidden; display:flex;">
+          <div style="height:100%; background:var(--ice); border-radius:4px 0 0 4px; width:0%; transition:width 1.4s ease;" class="tco-bar" data-width="72%"></div>
+          <div style="height:100%; background:rgba(245,158,11,0.35); width:0%; transition:width 1.4s ease 0.1s;" class="tco-bar" data-width="28%"></div>
+        </div>
+        <div style="display:flex; gap:16px; margin-top:6px; font-size:11px; color:var(--muted);">
+          <span style="color:var(--ice);">■ Eldsneyti 355.200 kr.</span>
+          <span style="color:rgba(245,158,11,0.5);">■ Viðhald 135.000 kr.</span>
+        </div>
+      </div>
+      <div style="font-size:22px; font-weight:700; color:var(--ice); flex-shrink:0; white-space:nowrap;">490.200 kr.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px; background:linear-gradient(135deg,rgba(0,212,255,0.07),rgba(0,212,255,0.02)); border:1px solid rgba(0,212,255,0.2); border-radius:14px; padding:24px 28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;" class="fade-in">
+    <div>
+      <div style="font-size:12px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px;">Árlegur kostnaðarforskot (Heima vs Bensín)</div>
+      <div style="font-size:40px; font-weight:700; color:var(--ev-home); letter-spacing:-0.02em;">327.800 kr./ári</div>
+    </div>
+    <div style="font-size:14px; color:var(--muted); max-width:320px;">
+      Á <strong style="color:var(--text);">10 árum</strong> er þetta <strong style="color:var(--ev-home);">3.278.000 kr.</strong> — áður en tíundað er til niðurgreiðslna eða skattaívilnana á rafbíla.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── IMAGE 3 (neðst) ───────────────────────────────────── -->
+<div>
+  <div class="fade-in">
+    <img src="hero3.png" alt="Norðurljós yfir hringveginum — Tesla langt framar" style="width:100%; display:block;">
+  </div>
+</div>
+
+<footer>
+  <strong style="color:var(--text);">Gögn og heimildir</strong> · GlobalPetrolPrices.com (rafmagn á Íslandi, sept. 2025) · ON Power / Ísorka hleðsluverð (2026) · GlobalPetrolPrices.com (bensínverð á Íslandi, apríl 2026) · EVKX.net raunverulegar nýtingartölur · Nissan X-Trail bensínnotkun (2025) · ZECar viðhaldsrannsókn 2025 · BestSellingCarsBlog Ísland 2025<br><br>
+  Allar tölur í íslenskum krónum (ISK). Byggt á 20.000 km árlegum akstur. Verð endurspegla meðaltal á landsvísu; svæðisbundið misræmi á við. Þetta er til upplýsinga — ekki fjárhagsráðgjöf.
+</footer>
+
+<script>
+// ── Counter ────────────────────────────────────────────────
+function animateCounter(el) {
+  const target   = parseFloat(el.dataset.target);
+  const decimals = parseInt(el.dataset.decimals) || 0;
+  const duration = 1400;
+  const start    = performance.now();
+
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const ease     = 1 - Math.pow(1 - progress, 3);
+    const value    = target * ease;
+    // Format with Icelandic thousands separator (period)
+    el.textContent = formatISK(value, decimals);
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = formatISK(target, decimals);
+  }
+  requestAnimationFrame(step);
+}
+
+function formatISK(n, decimals) {
+  const rounded = n.toFixed(decimals);
+  // Add thousands separator (period for ISK)
+  return rounded.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function animateBar(el) {
+  const w = el.dataset.width;
+  setTimeout(() => { el.style.width = w; }, 50);
+}
+
+function animateHeightBar(el) {
+  const h = el.dataset.height;
+  setTimeout(() => { el.style.height = h; }, 100);
+}
+
+// ── Intersection observer ──────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    el.classList.add('visible');
+
+    el.querySelectorAll('.counter').forEach(c => animateCounter(c));
+    el.querySelectorAll('.bar-fill').forEach(b => animateBar(b));
+    el.querySelectorAll('.j-fill').forEach(b => animateBar(b));
+    el.querySelectorAll('.lf-bar').forEach(b => animateHeightBar(b));
+    el.querySelectorAll('.tco-bar').forEach(b => animateBar(b));
+
+    observer.unobserve(el);
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Hero counters
+document.querySelectorAll('.hero .counter').forEach(c => {
+  setTimeout(() => animateCounter(c), 400);
+});
+
+// ── Copy prompt ────────────────────────────────────────────
+function copyPrompt() {
+  const text = document.getElementById('img-prompt').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7l4 4 6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Afritað!`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 14 14"><rect x="1" y="3" width="9" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 3V2.5A1.5 1.5 0 0 1 5.5 1h7A1.5 1.5 0 0 1 14 2.5v7A1.5 1.5 0 0 1 12.5 11H12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg> Afrita prómptur`;
+    }, 2500);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "source": "Migrated illustrative prototype defaults; not live market prices.",
+  "effectiveDate": "2026-05-01",
+  "homeChargingKrPerKwh": 25.76,
+  "fastChargingKrPerKwh": 65,
+  "evKwhPer100Km": 16,
+  "fuelKrPerLitre": 240,
+  "fuelLitresPer100Km": 7.4,
+  "annualKm": 20000
+}
