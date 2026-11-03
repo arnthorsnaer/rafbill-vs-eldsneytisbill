@@ -1,7 +1,5 @@
-/** Deterministic scenario maths. Prices and reserves are explicit inputs, never forecasts. */
-function nonNegative(value, name) { if (!Number.isFinite(value) || value < 0) throw new Error(`${name} must be a non-negative finite number.`); }
-export function krPer100Km({ unitPriceKr, consumptionPer100Km }) { nonNegative(unitPriceKr, "unitPriceKr"); nonNegative(consumptionPer100Km, "consumptionPer100Km"); return unitPriceKr * consumptionPer100Km; }
-export function krPerKm({ krPer100Km: cost }) { nonNegative(cost, "krPer100Km"); return cost / 100; }
-export function distanceForBudget({ budgetKr, krPer100Km: cost }) { nonNegative(budgetKr, "budgetKr"); nonNegative(cost, "krPer100Km"); return cost === 0 ? (budgetKr === 0 ? 0 : Infinity) : budgetKr * 100 / cost; }
-export function energyCost({ krPer100Km: cost, km }) { nonNegative(cost, "krPer100Km"); nonNegative(km, "km"); return Number((cost * km / 100).toFixed(2)); }
-export function operatingScenario({ km, krPer100Km: cost, scheduledMaintenanceKr, failureReserveKr = 0 }) { nonNegative(km, "km"); nonNegative(cost, "krPer100Km"); nonNegative(scheduledMaintenanceKr, "scheduledMaintenanceKr"); nonNegative(failureReserveKr, "failureReserveKr"); const energyKr = energyCost({ krPer100Km: cost, km }); return { energyKr, scheduledMaintenanceKr, failureReserveKr, totalKr: energyKr + scheduledMaintenanceKr + failureReserveKr }; }
+function valid(v,n){if(!Number.isFinite(v)||v<0)throw new Error(`${n} must be non-negative finite`)}
+export function per100(price,use){valid(price,"price");valid(use,"use");return price*use}
+export function energyCost(km,cost){valid(km,"km");valid(cost,"cost");return km*cost/100}
+export function scenario({km,cost,maintenance=0,reserve=0}){valid(maintenance,"maintenance");valid(reserve,"reserve");const energy=energyCost(km,cost);return{energy,maintenance,reserve,total:energy+maintenance+reserve}}
+export function phevPer100({electricShare,kwhPer100,homeKrPerKwh,depletedLitresPer100,petrolKrPerLitre}){valid(electricShare,"electricShare");if(electricShare>1)throw new Error("electricShare must be <= 1");return electricShare*per100(homeKrPerKwh,kwhPer100)+(1-electricShare)*per100(petrolKrPerLitre,depletedLitresPer100)}
