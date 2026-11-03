@@ -1,10 +1,13 @@
 {
-  "source": "Migrated illustrative prototype defaults; not live market prices.",
-  "effectiveDate": "2026-05-01",
-  "homeChargingKrPerKwh": 25.76,
-  "fastChargingKrPerKwh": 65,
-  "evKwhPer100Km": 16,
-  "fuelKrPerLitre": 240,
-  "fuelLitresPer100Km": 7.4,
-  "annualKm": 20000
+  "retrievedDate": "2026-11-03",
+  "vehicles": {
+    "bev": { "name": "Škoda Enyaq iV 80 150 kW RWD (2022)", "seats": 5, "bootLitres": 585, "consumptionKwhPer100Km": 17.4, "consumptionNote": "Upper end of the cited WLTP range (16.2–17.4 kWh/100 km); rated test value, not Icelandic real-world consumption." },
+    "petrol": { "name": "Škoda Kodiaq 1.5 TSI ACT 150 (2021)", "seats": 5, "bootLitres": 835, "consumptionLitresPer100Km": 7.5, "consumptionNote": "Upper end of cited WLTP DSG range (6.8–7.5 L/100 km); rated test value, not Icelandic real-world consumption." }
+  },
+  "homeDistribution": { "variableKrPerKwh": 12.05, "dailyFixedKr": 59.97, "effectiveDate": "2026-07-01", "note": "Veitur A1D incl. VAT. Daily fixed charge is shown separately and is not allocated to driving." },
+  "scenarios": {
+    "night": { "label": "Nætur- og kjör", "homeEnergyKrPerKwh": 6.49, "homeTotalKrPerKwh": 18.54, "rapidKrPerKwh": 47, "petrolKrPerLitre": 272.2, "fiveYearKm": 100000, "fiveYearBevMaintenanceKr": 150000, "fiveYearPetrolMaintenanceKr": 300000, "lifetimeKm": 200000, "lifetimeBevMaintenanceKr": 400000, "lifetimePetrolMaintenanceKr": 800000, "lifetimeBevReserveKr": 150000, "lifetimePetrolReserveKr": 250000, "note": "NæturOrka 23:00–07:00, HleðsluOrka condition, and displayed Orkan discounted 95 price." },
+    "base": { "label": "Viðmið", "homeEnergyKrPerKwh": 9.82, "homeTotalKrPerKwh": 21.87, "rapidKrPerKwh": 59, "petrolKrPerLitre": 284.2, "fiveYearKm": 100000, "fiveYearBevMaintenanceKr": 250000, "fiveYearPetrolMaintenanceKr": 500000, "lifetimeKm": 250000, "lifetimeBevMaintenanceKr": 600000, "lifetimePetrolMaintenanceKr": 1200000, "lifetimeBevReserveKr": 300000, "lifetimePetrolReserveKr": 500000, "note": "SparOrka, standard DC price, and displayed Orkan 95 price." },
+    "cautious": { "label": "Varfærin", "homeEnergyKrPerKwh": 9.82, "homeTotalKrPerKwh": 21.87, "rapidKrPerKwh": 59, "petrolKrPerLitre": 289.4, "fiveYearKm": 100000, "fiveYearBevMaintenanceKr": 400000, "fiveYearPetrolMaintenanceKr": 800000, "lifetimeKm": 300000, "lifetimeBevMaintenanceKr": 900000, "lifetimePetrolMaintenanceKr": 1800000, "lifetimeBevReserveKr": 600000, "lifetimePetrolReserveKr": 1000000, "note": "Standard home/DC tariff and displayed N1 95 price; higher planning allowances are illustrative, not failure forecasts." }
+  }
 }
